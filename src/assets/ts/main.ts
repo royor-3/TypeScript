@@ -1,156 +1,115 @@
-// classes
-// As we can see is this class, there are a redundacy
-// class Coder {
-//     name: string;
-//     music: string;
-//     age: number;
-//     lang: string;
+// Index Signatures
+// Is used when you create an object
+// but you don't know the exact names of the objects keys
+// You do know the shape of the object and you can declare the type of the keys and the types of the values
+// An other use is to access an object property dynamically
 
-//     constructor(name: string, music: string, age: number, lang: string) {
-//         this.name = name;
-//         this.music = music;
-//         this.age = age;
-//         this.lang = lang;
-//     }
+// interface TransactionObj {
+//     Pizza: number;
+//     Books: number;
+//     Job: number;
 // }
 
-// To avoid this, we can add what are called visibility modifiers
-class Coder {
-    // To avoid this redundacy, and you want add a property that you didn't want to instantiate (like a third-party library)
-    // you can use an assertion (exclamation mark here)
-    secondLand!: string;
+// // It's an index signature
+// interface TransactionObj {
+//     // We declare that keys will be strings and all the values will be numbers
+//     // Note that we could use union type
+//     // Also, index signature parameter type must be a string, number, some symbol or tamplate literal type
+//     readonly [index: string]: number; // | string | boolean
+// }
 
-    constructor(
-        public readonly name: string, // can't be modify
-        public music: string,
-        private age: number, // only access in the class
-        protected lang: string = 'TypeScript' // access to the class and any object that inherits from it
-    ) {
-        this.name = name;
-        this.music = music;
-        this.age = age;
-        this.lang = lang;
-    }
-
-    public getAge() {
-        return `Hello, I'm ${this.age}`;
-    }
+// Here, Pizza, Books and Job are required
+interface TransactionObj {
+    readonly [index: string]: number;
+    Pizza: number;
+    Books: number;
+    Job: number;
 }
 
-const Dave = new Coder('Dave', 'Rock', 42);
+const todaysTransactions: TransactionObj = {
+    Pizza: -10,
+    Books: -5,
+    Job: 50,
+};
 
-console.log(Dave.getAge());
-// console.log(Dave.age); // error because age is private
-// console.log(Dave.lang); // error because age is protected
+console.log(todaysTransactions.Pizza);
+console.log(todaysTransactions['Pizza']);
+let prop: string = 'Pizza';
+console.log(todaysTransactions[prop]);
 
-class WebDev extends Coder {
-    constructor(
-        public computer: string,
-        name: string,
-        music: string,
-        age: number
-    ) {
-        super(name, music, age); // super needs to come before we try to assign anything else
-        this.computer = computer;
+const todaysNet = (transactions: TransactionObj): number => {
+    let total = 0;
+    for (const transaction in transactions) {
+        total += transactions[transaction];
     }
+    return total;
+};
 
-    public getLang() {
-        return `I write ${this.lang}`;
-    }
-}
+console.log(todaysNet(todaysTransactions));
 
-const Sara = new WebDev('Mac', 'Sara', 'Lofi', 25);
-console.log(Sara.getLang());
-// console.log(Sara.age); // there are an error because age is still private
+// todaysTransactions.Pizza = 40;
 
-///////////////////////////////////////////////////////////////
+// it's not totally safe
+// This is does open up the possibility to try to access a key on an object that does not exist
+console.log(todaysTransactions['Dave']); // It's undefined
 
-// applying a interface to a class
+///////////////////////////////////////////////////
 
-interface Musician {
+interface Student {
+    [key: string]: string | number | number[] | undefined;
     name: string;
-    instrument: string;
-    play(action: string): string;
+    GPA: number;
+    classes?: number[];
 }
 
-class Guitariste implements Musician {
-    name: string;
-    instrument: string;
+const student: Student = {
+    name: 'Doug',
+    GPA: 3.5,
+    classes: [100, 200],
+};
 
-    constructor(name: string, instrument: string) {
-        this.name = name;
-        this.instrument = instrument;
-    }
+// We had an issue here but by adding a index signature
+// we solved the issue.
+// But we have a problem because TypeScript don't know if "test" exist or not
+// console.log(student.test);
 
-    play(action: string) {
-        return `${this.name} ${action} the ${this.instrument}`;
-    }
+for (const key in student) {
+    // if we comment the index signature, we will have an issue
+    // to solve this problem, we could use an union type
+    // and replace  ${student[key] by  ${student[key as keyof Student]
+    console.log(`${key}: ${student[key]}`);
 }
 
-const Page = new Guitariste('Jimmy', 'guitar');
-console.log(Page.play('strums'));
+Object.keys(student).map((key) => {
+    // if we don't know the student object what the type of it is
+    // we can use 'typeof" and list the object itself "student" (and not the interface)
+    console.log(student[key as keyof typeof student]);
+});
 
-////////////////////////////////////////////////////////////////////
+const logStudentKey = (student: Student, key: keyof Student): void => {
+    console.log(`Student ${key}: ${student[key]}`);
+};
 
-class Peeps {
-    // count is not apply to any instantiation of the class
-    // It applies to the class directly itself
-    static count: number = 0;
+logStudentKey(student, 'GPA');
+logStudentKey(student, 'name');
+logStudentKey(student, 'classes');
 
-    // getCount will be call directly in the class as well
-    static getCount(): number {
-        return Peeps.count;
-    }
+////////////////////////////////////////////////////
+// interface Incomes {
+//     [key: string]: number;
+// }
 
-    public id: number;
-    constructor(public name: string) {
-        this.name = name;
-        // first id will be 1.
-        // Peeps.count++ => the first id will be 0
-        this.id = ++Peeps.count;
-    }
+type Streams = 'salary' | 'bonus' | 'sidehustle';
+
+// record utility type
+type Incomes = Record<Streams, number | string>;
+
+const monthlyIncomes: Incomes = {
+    salary: 500,
+    bonus: 100,
+    sidehustle: 250,
+};
+
+for (const revenue in monthlyIncomes) {
+    console.log(monthlyIncomes[revenue as keyof Incomes]);
 }
-
-const John = new Peeps('John');
-const Steve = new Peeps('Steve');
-const Amy = new Peeps('Amy');
-
-// The count is incrementing as much as Peeps class is instantiated
-console.log(Peeps.count);
-console.log(`The Id of Steve is ${Steve.id}`);
-console.log(`The Id of Amy is ${Amy.id}`);
-console.log(`The Id of John is ${John.id}`);
-
-////////////////////////////////////////
-// getters and setters
-
-class Bands {
-    private dataState: string[];
-
-    constructor() {
-        this.dataState = [];
-    }
-
-    public get data(): string[] {
-        return this.dataState;
-    }
-
-    public set data(value: string[]) {
-        if (
-            Array.isArray(value) &&
-            value.every((el) => typeof el === 'string')
-        ) {
-            // return this.dataState = value // setters can't return a value
-            this.dataState = value;
-            return;
-        } else throw new Error('Param is not an array of strings');
-    }
-}
-
-const MyBands = new Bands();
-MyBands.data = ['Neil Young', 'Led Zep'];
-console.log(MyBands.data);
-MyBands.data = [...MyBands.data, 'ZZ Top'];
-console.log(MyBands.data);
-// MyBands.data = 'Van Halen'; // We've got an error because it's not an array
-// MyBands.data = ['Van Halen', 5150]; // We've got the error in the console because there are a number in the array
