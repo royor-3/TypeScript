@@ -1,133 +1,104 @@
 "use strict";
-// generics
-// sometimes we don't know what types will be passed into a function, interface, type,alias, class
-// generics allow us to provide a placeholder
-// this string is dedicated to a string
-const stringEcho = (argument) => argument;
-// this is a more generic function
-// By using <T>, we providing whatever that type of variable is in front
-// It can be useful with utility functions where we aren't sure what type we're goint to pass in
-const echo = (argument) => argument;
-const isObject = (argument) => {
-    return (typeof argument === 'object' &&
-        !Array.isArray(argument) &&
-        argument !== null);
+//  utility type
+//  there are helpfull for commin type transformations
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
 };
-console.log(isObject(true));
-console.log(isObject('John'));
-console.log(isObject([1, 2, 3]));
-console.log(isObject({ name: 'John' }));
-console.log(isObject(null));
-const isTrue = (argument) => {
-    if (Array.isArray(argument) && !argument.length)
-        return { argument, is: false };
-    if (isObject(argument) && !Object.keys(argument).length)
-        return { argument, is: false };
-    return { argument, is: !!argument };
+const updateAssignment = (assign, propsToUpdate) => {
+    return Object.assign(Object.assign({}, assign), propsToUpdate);
 };
-console.log(isTrue(false));
-console.log(isTrue(0));
-console.log(isTrue(true));
-console.log(isTrue(1));
-console.log(isTrue('Dave'));
-console.log(isTrue(''));
-console.log(isTrue(null));
-console.log(isTrue(undefined));
-console.log(isTrue({}));
-console.log(isTrue({ name: 'Dave' }));
-console.log(isTrue([]));
-console.log(isTrue([1, 2, 3]));
-console.log(isTrue(NaN));
-console.log(isTrue(-0));
-const checkBoolValue = (argument) => {
-    if (Array.isArray(argument) && !argument.length)
-        return { value: argument, is: false };
-    if (isObject(argument) && !Object.keys(argument).length)
-        return { value: argument, is: false };
-    return { value: argument, is: !!argument };
+const assign1 = {
+    studentId: 'compsci123',
+    title: 'Final Project',
+    grade: 0,
 };
-// How to use the extend keyword
-// Here the type will have to have an ID property that will be required
-const processUser = (user) => {
-    // process the user with logic here
-    return user;
+console.log(updateAssignment(assign1, { grade: 95 }));
+const assignGraded = updateAssignment(assign1, { grade: 95 });
+// Required and Readonly
+// Required
+// Requires all of the properties in the interface
+// verified was optional but now it's required too
+const recordAssignment = (assign) => {
+    // send to database, etc.
+    return assign;
 };
-// console.log(processUser({name: 'Dave'}));
-console.log(processUser({ id: 42, name: 'Dave' }));
-// more example for extends keyword
-// as T, K is another type of variable for generic
-// Here we are building K as a key of the first type that we pass in the key of T
-const getUsersProperty = (users, key) => {
-    return users.map((user) => user[key]);
+// verified is missing
+// console.log(
+//     recordAssignment({
+//         studentId: 'compsci123',
+//         title: 'Final Project',
+//         grade: 0
+//     })
+// );
+console.log(recordAssignment({
+    studentId: 'compsci123',
+    title: 'Final Project',
+    grade: 0,
+    verified: true,
+}));
+// Readonly
+// We can't overwrite any properties
+const assignVerified = Object.assign(Object.assign({}, assignGraded), { verified: true });
+// assignVerified.grade = 88
+// recordAssignment(assignGraded)
+recordAssignment(Object.assign(Object.assign({}, assignGraded), { verified: true }));
+// Record
+// here, keys will be string, and value will be strings too
+const hexColorMap = {
+    red: 'FF0000',
+    green: '00FF00',
+    blue: 'FF0000',
 };
-const usersArray = [
-    {
-        id: 1,
-        name: 'Leanne Graham',
-        username: 'Bret',
-        email: 'Sincere@april.biz',
-        address: {
-            street: 'Kulas Light',
-            suite: 'Apt. 556',
-            city: 'Gwenborough',
-            zipcode: '92998-3874',
-            geo: {
-                lat: '-37.3159',
-                lng: '81.1496',
-            },
-        },
-        phone: '1-770-736-8031 x56442',
-        website: 'hildegard.org',
-        company: {
-            name: 'Romaguera-Crona',
-            catchPhrase: 'Multi-layered client-server neural-net',
-            bs: 'harness real-time e-markets',
-        },
-    },
-    {
-        id: 2,
-        name: 'Ervin Howell',
-        username: 'Antonette',
-        email: 'Shanna@melissa.tv',
-        address: {
-            street: 'Victor Plains',
-            suite: 'Suite 879',
-            city: 'Wisokyburgh',
-            zipcode: '90566-7771',
-            geo: {
-                lat: '-43.9509',
-                lng: '-34.4618',
-            },
-        },
-        phone: '010-692-6593 x09125',
-        website: 'anastasia.net',
-        company: {
-            name: 'Deckow-Crist',
-            catchPhrase: 'Proactive didactic contingency',
-            bs: 'synergize scalable supply-chains',
-        },
-    },
-];
-console.log(getUsersProperty(usersArray, 'email'));
-console.log(getUsersProperty(usersArray, 'username'));
-// use a generic in a class
-class StateObject {
-    constructor(value) {
-        this.data = value;
-    }
-    get state() {
-        return this.data;
-    }
-    set state(value) {
-        this.data = value;
-    }
-}
-const store = new StateObject('John');
-console.log(store.state);
-store.state = 'Dave';
-// Here we have an error because
-// TS inferred that's the type is 'string' because we assign John as the first value
-// store.state = 42
-const myState = new StateObject([15]);
-myState.state = ['Dave', 42, true];
-console.log(myState.state);
+const finalGrades = {
+    Sara: 'B',
+    // Kelly: "Z"
+    // John: 'C'
+    Kelly: 'D',
+};
+const gradeData = {
+    Sara: { assign1: 85, assign2: 93 },
+    Kelly: { assign1: 76, assign2: 15 },
+};
+// const score: AssignResult = {
+//     studentId: 'k123',
+// };
+const score = {
+    studentId: 'k123',
+    grade: 85,
+};
+// const preview: AssignPreview = {
+//     studentId: 'k123',
+//     grade: 'Final Project',
+// };
+const preview = {
+    studentId: 'k123',
+    title: 'Final Project',
+};
+// ReturnType
+// type newAssign = { title: string, points: number}
+const createNewAssign = (title, points) => {
+    return { title, points };
+};
+const tsAssign = createNewAssign('Utility Types', 100);
+console.log(tsAssign);
+const assignArgs = ['Generics', 100];
+const tsAssign2 = createNewAssign(...assignArgs);
+console.log(tsAssign2);
+const fetchUsers = () => __awaiter(void 0, void 0, void 0, function* () {
+    const data = yield fetch('https://jsonplaceholder.typicode.com/users')
+        .then((res) => {
+        return res.json();
+    })
+        .catch((err) => {
+        if (err instanceof Error)
+            console.log(err.message);
+    });
+    return data;
+});
+fetchUsers().then((users) => console.log(users));

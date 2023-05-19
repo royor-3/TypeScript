@@ -1,166 +1,192 @@
-// generics
-// sometimes we don't know what types will be passed into a function, interface, type,alias, class
-// generics allow us to provide a placeholder
+//  utility type
+//  there are helpfull for commin type transformations
 
-// this string is dedicated to a string
-const stringEcho = (argument: string): string => argument;
+//  partial
+// this type allowing to pass here in a object that just has one property of assignment
 
-// this is a more generic function
-// By using <T>, we providing whatever that type of variable is in front
-// It can be useful with utility functions where we aren't sure what type we're goint to pass in
-const echo = <T>(argument: T): T => argument;
-
-const isObject = <T>(argument: T): boolean => {
-    return (
-        typeof argument === 'object' &&
-        !Array.isArray(argument) &&
-        argument !== null
-    );
-};
-
-console.log(isObject(true));
-console.log(isObject('John'));
-console.log(isObject([1, 2, 3]));
-console.log(isObject({ name: 'John' }));
-console.log(isObject(null));
-
-const isTrue = <T>(argument: T): { argument: T; is: boolean } => {
-    if (Array.isArray(argument) && !argument.length)
-        return { argument, is: false };
-    if (isObject(argument) && !Object.keys(argument as keyof T).length)
-        return { argument, is: false };
-    return { argument, is: !!argument };
-};
-
-console.log(isTrue(false));
-console.log(isTrue(0));
-console.log(isTrue(true));
-console.log(isTrue(1));
-console.log(isTrue('Dave'));
-console.log(isTrue(''));
-console.log(isTrue(null));
-console.log(isTrue(undefined));
-console.log(isTrue({}));
-console.log(isTrue({ name: 'Dave' }));
-console.log(isTrue([]));
-console.log(isTrue([1, 2, 3]));
-console.log(isTrue(NaN));
-console.log(isTrue(-0));
-
-// Type placeholder a generic in the interface
-interface BooleanCheck<T> {
-    value: T;
-    is: boolean;
+interface Assignment {
+    studentId: string;
+    title: string;
+    grade: number;
+    verified?: boolean;
 }
 
-const checkBoolValue = <T>(argument: T): BooleanCheck<T> => {
-    if (Array.isArray(argument) && !argument.length)
-        return { value: argument, is: false };
-    if (isObject(argument) && !Object.keys(argument as keyof T).length)
-        return { value: argument, is: false };
-    return { value: argument, is: !!argument };
+const updateAssignment = (
+    assign: Assignment,
+    propsToUpdate: Partial<Assignment>
+): Assignment => {
+    return { ...assign, ...propsToUpdate };
 };
 
-interface HasID {
+const assign1: Assignment = {
+    studentId: 'compsci123',
+    title: 'Final Project',
+    grade: 0,
+};
+
+console.log(updateAssignment(assign1, { grade: 95 }));
+const assignGraded: Assignment = updateAssignment(assign1, { grade: 95 });
+
+// Required and Readonly
+
+// Required
+// Requires all of the properties in the interface
+// verified was optional but now it's required too
+
+const recordAssignment = (assign: Required<Assignment>): Assignment => {
+    // send to database, etc.
+    return assign;
+};
+
+// verified is missing
+// console.log(
+//     recordAssignment({
+//         studentId: 'compsci123',
+//         title: 'Final Project',
+//         grade: 0
+//     })
+// );
+
+console.log(
+    recordAssignment({
+        studentId: 'compsci123',
+        title: 'Final Project',
+        grade: 0,
+        verified: true,
+    })
+);
+
+// Readonly
+// We can't overwrite any properties
+const assignVerified: Readonly<Assignment> = {
+    ...assignGraded,
+    verified: true,
+};
+// assignVerified.grade = 88
+// recordAssignment(assignGraded)
+recordAssignment({ ...assignGraded, verified: true });
+
+// Record
+
+// here, keys will be string, and value will be strings too
+const hexColorMap: Record<string, string> = {
+    red: 'FF0000',
+    green: '00FF00',
+    blue: 'FF0000',
+};
+
+type Students = 'Sara' | 'Kelly';
+type LetterGrades = 'A' | 'B' | 'C' | 'D' | 'U';
+
+const finalGrades: Record<Students, LetterGrades> = {
+    Sara: 'B',
+    // Kelly: "Z"
+    // John: 'C'
+    Kelly: 'D',
+};
+
+// Record with an interface
+interface Grades {
+    assign1: number;
+    assign2: number;
+}
+
+const gradeData: Record<Students, Grades> = {
+    Sara: { assign1: 85, assign2: 93 },
+    Kelly: { assign1: 76, assign2: 15 },
+};
+
+// Pick and Omit
+
+// Pick
+// To specify properties that you want to select
+type AssignResult = Pick<Assignment, 'studentId' | 'grade'>;
+
+// const score: AssignResult = {
+//     studentId: 'k123',
+// };
+const score: AssignResult = {
+    studentId: 'k123',
+    grade: 85,
+};
+
+// Omit
+// To discard unwanted properties
+type AssignPreview = Omit<Assignment, 'grade' | 'verified'>;
+
+// const preview: AssignPreview = {
+//     studentId: 'k123',
+//     grade: 'Final Project',
+// };
+const preview: AssignPreview = {
+    studentId: 'k123',
+    title: 'Final Project',
+};
+
+// Exclude and Extract
+// they are going to work with string literal union type
+// not with interface
+
+// Exclude
+// To exclude a string literal from a union type
+type AdjustedGrade = Exclude<LetterGrades, 'U'>;
+
+// Extract
+// To extract a string literal from a union type
+type highGrades = Extract<LetterGrades, 'A' | 'B'>;
+
+// NonNullable
+// To exclude both null and undefined from the union type
+type AllPossibleGrades = 'Dave' | 'John' | null | undefined;
+
+type NamesOnly = NonNullable<AllPossibleGrades>;
+
+// ReturnType
+
+// type newAssign = { title: string, points: number}
+
+const createNewAssign = (title: string, points: number) => {
+    return { title, points };
+};
+// if we change the function createNewAssign, this type will be always goind to update the return type
+// it's usefull for function we didn't create (library for exemple)
+type NewAssign = ReturnType<typeof createNewAssign>;
+
+const tsAssign: NewAssign = createNewAssign('Utility Types', 100);
+console.log(tsAssign);
+
+// Parameters
+// if we look at the params, it's a tuple
+type AssignParamas = Parameters<typeof createNewAssign>;
+
+const assignArgs: AssignParamas = ['Generics', 100];
+
+const tsAssign2: NewAssign = createNewAssign(...assignArgs);
+console.log(tsAssign2);
+
+// Awaited - helps us with the ReturnType of a Promise
+// is used to get the return of the promise
+
+interface User {
     id: number;
+    name: string;
+    username: string;
+    email: string;
 }
 
-// How to use the extend keyword
-// Here the type will have to have an ID property that will be required
-const processUser = <T extends HasID>(user: T): T => {
-    // process the user with logic here
-    return user;
+const fetchUsers = async (): Promise<User[]> => {
+    const data = await fetch('https://jsonplaceholder.typicode.com/users')
+        .then((res) => {
+            return res.json();
+        })
+        .catch((err) => {
+            if (err instanceof Error) console.log(err.message);
+        });
+    return data;
 };
+// on the hover, we can read here Promise<User[]> and not only User[]
+// type FetchUsersReturnType = ReturnType<typeof fetchUsers>;
+// on the hover, we can read User[] thanks to Awaited
+type FetchUsersReturnType = Awaited<ReturnType<typeof fetchUsers>>;
 
-// console.log(processUser({name: 'Dave'}));
-console.log(processUser({ id: 42, name: 'Dave' }));
-
-// more example for extends keyword
-// as T, K is another type of variable for generic
-// Here we are building K as a key of the first type that we pass in the key of T
-const getUsersProperty = <T extends HasID, K extends keyof T>(
-    users: T[],
-    key: K
-): T[K][] => {
-    return users.map((user) => user[key]);
-};
-
-const usersArray = [
-    {
-        id: 1,
-        name: 'Leanne Graham',
-        username: 'Bret',
-        email: 'Sincere@april.biz',
-        address: {
-            street: 'Kulas Light',
-            suite: 'Apt. 556',
-            city: 'Gwenborough',
-            zipcode: '92998-3874',
-            geo: {
-                lat: '-37.3159',
-                lng: '81.1496',
-            },
-        },
-        phone: '1-770-736-8031 x56442',
-        website: 'hildegard.org',
-        company: {
-            name: 'Romaguera-Crona',
-            catchPhrase: 'Multi-layered client-server neural-net',
-            bs: 'harness real-time e-markets',
-        },
-    },
-    {
-        id: 2,
-        name: 'Ervin Howell',
-        username: 'Antonette',
-        email: 'Shanna@melissa.tv',
-        address: {
-            street: 'Victor Plains',
-            suite: 'Suite 879',
-            city: 'Wisokyburgh',
-            zipcode: '90566-7771',
-            geo: {
-                lat: '-43.9509',
-                lng: '-34.4618',
-            },
-        },
-        phone: '010-692-6593 x09125',
-        website: 'anastasia.net',
-        company: {
-            name: 'Deckow-Crist',
-            catchPhrase: 'Proactive didactic contingency',
-            bs: 'synergize scalable supply-chains',
-        },
-    },
-];
-
-console.log(getUsersProperty(usersArray, 'email'));
-console.log(getUsersProperty(usersArray, 'username'));
-
-// use a generic in a class
-class StateObject<T> {
-    private data: T;
-
-    constructor(value: T) {
-        this.data = value;
-    }
-
-    get state(): T {
-        return this.data;
-    }
-
-    set state(value: T) {
-        this.data = value;
-    }
-}
-
-const store = new StateObject('John');
-console.log(store.state);
-store.state = 'Dave';
-// Here we have an error because
-// TS inferred that's the type is 'string' because we assign John as the first value
-// store.state = 42
-
-const myState = new StateObject<(string | number | boolean)[]>([15]);
-myState.state = ['Dave', 42, true];
-console.log(myState.state);
+fetchUsers().then((users) => console.log(users));
