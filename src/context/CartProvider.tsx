@@ -38,7 +38,7 @@ const reducer = (state: CartStateType, action: ReducerAction): CartStateType => 
 
             const itemExists: CartItemType | undefined = state.cart.find(item => item.sku === sku)
 
-            const qty: number = itemExists ? itemExists.qty = 1 : 1
+            const qty: number = itemExists ? itemExists.qty + 1 : 1
 
             return { ...state, cart: [...filteredCart, {sku, name, price, qty}]}
         }
@@ -50,7 +50,7 @@ const reducer = (state: CartStateType, action: ReducerAction): CartStateType => 
 
             const filteredCart: CartItemType[] = state.cart.filter(item => item.sku !== sku)
 
-            return {...state, cart: {...filteredCart}}
+            return {...state, cart: [...filteredCart]}
         }
         case REDUCER_ACTION_TYPE.QUANTITY: {
             if (!action.payload) {
